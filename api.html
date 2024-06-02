@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>api</title>
+</head>
+<body>
+    <h1>지역별 날씨 정보</h1>
+    <div id="weather"></div>
+
+    <script>
+        const apiKey = '8f7b365bda2da68e3983adf27c328085';
+        const citiesEnglish = ['Gunsan', 'Jeonju', 'Mokpo', 'Yeosu', 'Yongin', 'Suwon', 'Pyeongtaek', 'Seongnam', 'Pohang', 'Gyeongju', 'Busan', 'Daegu'];
+        const citiesKorean = {
+            'Gunsan': '근산',
+            'Jeonju': '전주',
+            'Mokpo': '목포',
+            'Yeosu': '여수',
+            'Yongin': '용인',
+            'Suwon': '수원',
+            'Pyeongtaek': '평택',
+            'Seongnam': '성남',
+            'Pohang': '포항',
+            'Gyeongju': '경주',
+            'Busan': '부산',
+            'Daegu': '대구'
+        };
+        const weatherData = {};
+
+        function fetchWeather(city) {
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=kr`;
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const weatherMain = data.weather[0].main; 
+                    const celestialObject = mapWeatherToCelestial(weatherMain); 
+                    weatherData[city] = celestialObject;
+                    if (Object.keys(weatherData).length === citiesEnglish.length) {
+                        displayWeather();
+                    }
+                })
+                .catch(error => {
+                    console.error(`${city} 지역의 날씨 정보를 가져오는 중 오류가 발생했습니다.`, error);
+                });
+        }
+
+        function displayWeather() {
+            const weatherContainer = document.getElementById('weather');
+            citiesEnglish.forEach(city => {
+                const celestialObject = weatherData[city];
+                const weatherElement = document.createElement('p');
+                weatherElement.textContent = `${citiesKorean[city]}: ${celestialObject}`;
+                weatherContainer.appendChild(weatherElement);
+            });
+        }
+
+        function mapWeatherToCelestial(weatherMain) { 
+            switch (weatherMain) {
+                case 'Clear':
+                    return '☀️';
+                case 'Clouds':
+                    return '☁️';
+                case 'Rain':
+                case 'Drizzle':
+                case 'Squall':
+                    return '🌧️';
+                case 'Thunderstorm':
+                    return '⛈️';
+                case 'Snow':
+                    return '❄️';
+                case 'Mist':
+                case 'Haze':
+                case 'Smoke':
+                case 'Fog':
+                    return '🌫️';
+                case 'Dust':
+                case 'Sand':
+                case 'Ash':
+                    return '🌪️';
+                default:
+                    return '❌';
+            }
+        }
+
+        citiesEnglish.forEach(city => {
+            fetchWeather(city);
+        });
+    </script>
+</body>
+</html>
